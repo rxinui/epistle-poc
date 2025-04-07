@@ -80,3 +80,60 @@ flowchart LR
     B(post/**) -->|create a post| A(main)
 ```
 
+## Workflows
+
+### Initiate an epistle blog
+
+```mermaid
+sequenceDiagram
+    actor user
+    participant epistle-cli
+    participant github
+    user->>epistle-cli: epistle-cli init my-blog
+    epistle-cli->>github: git clone rxinui/epistle-poc
+    github-->>epistle-cli: "clone and rename repo to my-blog"
+    epistle-cli-->>user: "my-blog is initiated"
+```
+
+OUTPUT STATES: `INITIATED`
+
+### Starts the writting of an epistle post
+
+**Requirement**: `INITIATED`
+
+```mermaid
+sequenceDiagram
+    actor user
+    participant epistle-cli
+    participant github
+    epistle-cli-->>epistle-cli: states: INITIATED
+    user->>epistle-cli: epistle-cli write my-post-title
+    rect rgb(66, 135, 245)
+    epistle-cli->>epistle-cli: git checkout -b post/my-post-title && \<br/>$EDITOR post/README.md
+    end
+    epistle-cli -->> user: "my-post-title is ready to be written"
+```
+
+OUTPUT STATES: `WRITABLE`
+
+### Publish an epistle post
+
+**Requirement**: `INITIATED`, `WRITABLE`
+
+```mermaid
+sequenceDiagram
+    actor user
+    participant epistle-cli
+    participant github
+    epistle-cli-->>epistle-cli: states: INITIATED,WRITABLE
+    user->>epistle-cli: epistle-cli pub my-post-title
+    rect rgb(66, 135, 245)
+    epistle-cli->>epistle-cli: git add post/ && \<br/>git commit -am "v1.0.0: 1st my-post-title"
+    end
+    epistle-cli->>github: git push origin HEAD
+    github-->>epistle-cli: "my-post-title branch is pushed"
+    epistle-cli-->>user: "my-post-title is published on my-blog"
+    epistle-cli-->>epistle-cli: states: INITIATED,WRITABLE,PUBLISHED
+```
+
+OUTPUT STATES: `PUBLISHED`
